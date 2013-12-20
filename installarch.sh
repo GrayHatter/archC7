@@ -161,7 +161,7 @@ fi
 mount -t ext4 ${target_rootfs} /tmp/archfs
 
 # Get OS Image and extract to root. 
-tar_file="http://grayhatter.com/public/archC7images/$arch_version.tar.gz"
+tar_file="http://grayhatter.com/public/archC7/images/$arch_version.tar.gz"
 wget -O - $tar_file | tar xzvvp -C /tmp/archfs/
 
 # We're about to chroot: remount.
