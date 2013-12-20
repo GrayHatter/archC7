@@ -33,7 +33,7 @@ if [ "$3" != "" ]; then
   echo ""
   echo "WARNING! All data on this device will be wiped out! Continue at your own risk!"
   echo ""
-  read -p "Press [Enter] to install ChrUbuntu on ${target_disk} or CTRL+C to quit"
+  read -p "Press [Enter] to install ChromeArch on ${target_disk} or CTRL+C to quit"
 
   ext_size="`blockdev --getsz ${target_disk}`"
   aroot_size=$((ext_size - 65600 - 33))
@@ -53,22 +53,22 @@ else
   croot_size="`cgpt show -i 7 -n -s -q ${target_disk}`"
   state_size="`cgpt show -i 1 -n -s -q ${target_disk}`"
 
-  max_ubuntu_size=$(($state_size/1024/1024/2))
-  rec_ubuntu_size=$(($max_ubuntu_size - 1))
+  max_arch_size=$(($state_size/1024/1024/2))
+  rec_arch_size=$(($max_arch_size - 1))
   # If KERN-C and ROOT-C are one, we partition, otherwise assume they're what they need to be...
   if [ "$ckern_size" =  "1" -o "$croot_size" = "1" ]
   then
     while :
     do
-      read -p "Enter the size in gigabytes you want to reserve for Ubuntu. Acceptable range is 5 to $max_ubuntu_size  but $rec_ubuntu_size is the recommended maximum: " ubuntu_size
-      if [ ! $ubuntu_size -ne 0 2>/dev/null ]
+      read -p "Enter the size in gigabytes you want to reserve for arch. Acceptable range is 5 to $max_arch_size  but $rec_arch_size is the recommended maximum: " arch_size
+      if [ ! $arch_size -ne 0 2>/dev/null ]
       then
         echo -e "\n\nNumbers only please...\n\n"
         continue
       fi
-      if [ $ubuntu_size -lt 5 -o $ubuntu_size -gt $max_ubuntu_size ]
+      if [ $arch_size -lt 5 -o $arch_size -gt $max_arch_size ]
       then
-        echo -e "\n\nThat number is out of range. Enter a number 5 through $max_ubuntu_size\n\n"
+        echo -e "\n\nThat number is out of range. Enter a number 5 through $max_arch_size\n\n"
         continue
       fi
       break
@@ -76,7 +76,7 @@ else
     # We've got our size in GB for ROOT-C so do the math...
 
     #calculate sector size for rootc
-    rootc_size=$(($ubuntu_size*1024*1024*2))
+    rootc_size=$(($arch_size*1024*1024*2))
 
     #kernc is always 16mb
     kernc_size=32768
@@ -95,7 +95,7 @@ else
 
     #Do the real work
 
-    echo -e "\n\nModifying partition table to make room for Ubuntu." 
+    echo -e "\n\nModifying partition table to make room for arch." 
     echo -e "Your Chromebook will reboot, wipe your data and then"
     echo -e "you should re-run this script..."
     umount -f /mnt/stateful_partition
@@ -119,59 +119,27 @@ hwid="`crossystem hwid`"
 
 chromebook_arch="`uname -m`"
 
-ubuntu_metapackage=${1:-default}
+arch_metapackage=${1:-default}
 
-latest_ubuntu=`wget --quiet -O - http://changelogs.ubuntu.com/meta-release | grep "^Version: " | tail -1 | sed -r 's/^Version: ([^ ]+)( LTS)?$/\1/'`
-ubuntu_version=${2:-$latest_ubuntu}
+# Set arch 
+arch_arch="amd64"
 
-if [ "$ubuntu_version" = "lts" ]
-then
-  ubuntu_version=`wget --quiet -O - http://changelogs.ubuntu.com/meta-release | grep "^Version:" | grep "LTS" | tail -1 | sed -r 's/^Version: ([^ ]+)( LTS)?$/\1/'`
-elif [ "$ubuntu_version" = "latest" ]
-then
-  ubuntu_version=$latest_ubuntu
-fi
-
-if [ "$chromebook_arch" = "x86_64" ]
-then
-  ubuntu_arch="amd64"
-  if [ "$ubuntu_metapackage" = "default" ]
-  then
-    ubuntu_metapackage="ubuntu-desktop"
-  fi
-elif [ "$chromebook_arch" = "i686" ]
-then
-  ubuntu_arch="i386"
-  if [ "$ubuntu_metapackage" = "default" ]
-  then
-    ubuntu_metapackage="ubuntu-desktop"
-  fi
-elif [ "$chromebook_arch" = "armv7l" ]
-then
-  ubuntu_arch="armhf"
-  if [ "$ubuntu_metapackage" = "default" ]
-  then
-    ubuntu_metapackage="xubuntu-desktop"
-  fi
-else
-  echo -e "Error: This script doesn't know how to install ChrUbuntu on $chromebook_arch"
-  exit
-fi
 
 echo -e "\nChrome device model is: $hwid\n"
 
-echo -e "Installing Ubuntu ${ubuntu_version} with metapackage ${ubuntu_metapackage}\n"
+#TODO edit
+echo -e "Installing arch ${arch_version} with metapackage ${arch_metapackage}\n"
 
-echo -e "Kernel Arch is: $chromebook_arch  Installing Ubuntu Arch: $ubuntu_arch\n"
+echo -e "Kernel Arch is: $chromebook_arch  Installing arch Arch: $arch_arch\n"
 
 read -p "Press [Enter] to continue..."
 
-if [ ! -d /mnt/stateful_partition/ubuntu ]
+if [ ! -d /mnt/stateful_partition/arch ]
 then
-  mkdir /mnt/stateful_partition/ubuntu
+  mkdir /mnt/stateful_partition/arch
 fi
 
-cd /mnt/stateful_partition/ubuntu
+cd /mnt/stateful_partition/arch
 
 if [[ "${target_disk}" =~ "mmcblk" ]]
 then
@@ -190,71 +158,51 @@ then
   exit 
 fi
 
+# Format rootfs to ext4
 mkfs.ext4 ${target_rootfs}
 
-if [ ! -d /tmp/urfs ]
+# Mount new root
+if [ ! -d /tmp/archfs ]
 then
-  mkdir /tmp/urfs
+  mkdir /tmp/archfs
 fi
-mount -t ext4 ${target_rootfs} /tmp/urfs
+mount -t ext4 ${target_rootfs} /tmp/archfs
 
-tar_file="http://cdimage.ubuntu.com/ubuntu-core/releases/$ubuntu_version/release/ubuntu-core-$ubuntu_version-core-$ubuntu_arch.tar.gz"
-if [ $ubuntu_version = "dev" ]
-then
-  ubuntu_animal=`wget --quiet -O - http://changelogs.ubuntu.com/meta-release-development | grep "^Dist: " | tail -1 | sed -r 's/^Dist: (.*)$/\1/'`
-  tar_file="http://cdimage.ubuntu.com/ubuntu-core/daily/current/$ubuntu_animal-core-$ubuntu_arch.tar.gz"
-fi
-wget -O - $tar_file | tar xzvvp -C /tmp/urfs/
+# Get OS Image and extract to root. 
+tar_file="http://cdimage.arch.com/arch-core/releases/$arch_version/release/arch-core-$arch_version-core-$arch_arch.tar.gz"
+wget -O - $tar_file | tar xzvvp -C /tmp/archfs/
 
 # We're about to chroot: remount.
-mount -o bind /proc /tmp/urfs/proc
-mount -o bind /dev /tmp/urfs/dev
-mount -o bind /dev/pts /tmp/urfs/dev/pts
-mount -o bind /sys /tmp/urfs/sys
+mount -o bind /proc /tmp/archfs/proc
+mount -o bind /dev /tmp/archfs/dev
+mount -o bind /dev/pts /tmp/archfs/dev/pts
+mount -o bind /sys /tmp/archfs/sys
 
 # Grab a copy of cgpt for our new install.
 if [ -f /usr/bin/old_bins/cgpt ]
 then
-  cp /usr/bin/old_bins/cgpt /tmp/urfs/usr/bin/
+  cp /usr/bin/old_bins/cgpt /tmp/archfs/usr/bin/
 else
-  cp /usr/bin/cgpt /tmp/urfs/usr/bin/
+  cp /usr/bin/cgpt /tmp/archfs/usr/bin/
 fi
 
 # Set hostname vars.
-chmod a+rx /tmp/urfs/usr/bin/cgpt
-cp /etc/resolv.conf /tmp/urfs/etc/
-echo chrubuntu > /tmp/urfs/etc/hostname
+chmod a+rx /tmp/archfs/usr/bin/cgpt
+cp /etc/resolv.conf /tmp/archfs/etc/
+echo ChromeArch > /tmp/archfs/etc/hostname
 #echo -e "127.0.0.1       localhost
-echo -e "\n127.0.1.1       chrubuntu" >> /tmp/urfs/etc/hosts
+echo -e "\n127.0.1.1       ChromeArch" >> /tmp/archfs/etc/hosts
 # The following lines are desirable for IPv6 capable hosts
 #::1     localhost ip6-localhost ip6-loopback
 #fe00::0 ip6-localnet
 #ff00::0 ip6-mcastprefix
 #ff02::1 ip6-allnodes
-#ff02::2 ip6-allrouters" > /tmp/urfs/etc/hosts
+#ff02::2 ip6-allrouters" > /tmp/archfs/etc/hosts
 
-# Install chrome to ubuntu
-cr_install="wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-add-apt-repository \"deb http://dl.google.com/linux/chrome/deb/ stable main\"
-apt-get update
-apt-get -y install google-chrome-stable"
-if [ $ubuntu_arch = 'armhf' ]
-then
-  cr_install='apt-get -y install chromium-browser'
-fi
-
-add_apt_repository_package='software-properties-common'
-ubuntu_major_version=${ubuntu_version:0:2}
-ubuntu_minor_version=${ubuntu_version:3:2}
-if [ $ubuntu_major_version -le 12 ] && [ $ubuntu_minor_version -lt 10 ]
-then
-  add_apt_repository_package='python-software-properties'
-fi
-
-# System updates for ubuntu
+# System updates for ubuntu TODO
 echo -e "apt-get -y update
 apt-get -y dist-upgrade
-apt-get -y install ubuntu-minimal
+apt-get -y install arch-minimal
 apt-get -y install wget
 apt-get -y install $add_apt_repository_package
 add-apt-repository main
@@ -262,36 +210,32 @@ add-apt-repository universe
 add-apt-repository restricted
 add-apt-repository multiverse 
 apt-get update
-apt-get -y install $ubuntu_metapackage
+apt-get -y install $arch_metapackage
 $cr_install
 if [ -f /usr/lib/lightdm/lightdm-set-defaults ]
 then
   /usr/lib/lightdm/lightdm-set-defaults --autologin user
-fi
-useradd -m user -s /bin/bash
-echo user | echo user:user | chpasswd
-adduser user adm
-adduser user sudo" > /tmp/urfs/install-ubuntu.sh
+fi" > /tmp/archfs/install-arch.sh
 
 # chroot and run update script.
-chmod a+x /tmp/urfs/install-ubuntu.sh
-chroot /tmp/urfs /bin/bash -c /install-ubuntu.sh
-rm /tmp/urfs/install-ubuntu.sh
+chmod a+x /tmp/archfs/install-arch.sh
+chroot /tmp/archfs /bin/bash -c /install-arch.sh
+rm /tmp/archfs/install-arch.sh
 
 # Prepare our kernel 
 KERN_VER=`uname -r`
-mkdir -p /tmp/urfs/lib/modules/$KERN_VER/
-cp -ar /lib/modules/$KERN_VER/* /tmp/urfs/lib/modules/$KERN_VER/
-if [ ! -d /tmp/urfs/lib/firmware/ ]
+mkdir -p /tmp/archfs/lib/modules/$KERN_VER/
+cp -ar /lib/modules/$KERN_VER/* /tmp/archfs/lib/modules/$KERN_VER/
+if [ ! -d /tmp/archfs/lib/firmware/ ]
 then
-  mkdir /tmp/urfs/lib/firmware/
+  mkdir /tmp/archfs/lib/firmware/
 fi
 # Copy over lib/firmware
-cp -ar /lib/firmware/* /tmp/urfs/lib/firmware/
+cp -ar /lib/firmware/* /tmp/archfs/lib/firmware/
 
 echo "console=tty1 debug verbose root=${target_rootfs} rootwait rw lsm.module_locking=0" > kernel-config
 vbutil_arch="x86"
-if [ $ubuntu_arch = "armhf" ]
+if [ $arch_arch = "armhf" ]
 then
   vbutil_arch="arm"
 fi
@@ -309,24 +253,24 @@ vbutil_kernel --repack ${target_kern} \
     --config kernel-config \
     --arch $vbutil_arch
 
-#Set Ubuntu kernel partition as top priority for next boot (and next boot only)
+#Set arch kernel partition as top priority for next boot (and next boot only)
 cgpt add -i 6 -P 5 -T 1 ${target_disk}
 
 # We're done, prompt user.
 echo -e "
 
-Installation seems to be complete. If ChrUbuntu fails when you reboot,
+Installation seems to be complete. If ChromeArch fails to boot when you reboot,
 power off your Chrome OS device and then turn it back on. You'll be back
-in Chrome OS. If you're happy with ChrUbuntu when you reboot be sure to run:
+in Chrome OS. If you're happy with ChromeArch when you reboot be sure to run:
 
 sudo cgpt add -i 6 -P 5 -S 1 ${target_disk}
 
-To make it the default boot option. The ChrUbuntu login is:
+To make it the default boot option. The ChromeArch login is:
 
-Username:  user
-Password:  user
+Username:  root
+Password:  [blank]
 
-We're now ready to start ChrUbuntu!
+We're now ready to start ChromeArch!
 "
 
 read -p "Press [Enter] to reboot..."
