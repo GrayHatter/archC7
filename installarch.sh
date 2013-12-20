@@ -116,22 +116,14 @@ fi
 
 # hwid lets us know if this is a Mario (Cr-48), Alex (Samsung Series 5), ZGB (Acer), etc
 hwid="`crossystem hwid`"
-
 chromebook_arch="`uname -m`"
-
-arch_metapackage=${1:-default}
-
-# Set arch 
-arch_arch="amd64"
-
+arch_version="default"
 
 echo -e "\nChrome device model is: $hwid\n"
 
 #TODO edit
 echo -e "Installing arch ${arch_version} with metapackage ${arch_metapackage}\n"
-
 echo -e "Kernel Arch is: $chromebook_arch  Installing arch Arch: $arch_arch\n"
-
 read -p "Press [Enter] to continue..."
 
 if [ ! -d /mnt/stateful_partition/arch ]
@@ -169,7 +161,7 @@ fi
 mount -t ext4 ${target_rootfs} /tmp/archfs
 
 # Get OS Image and extract to root. 
-tar_file="http://cdimage.arch.com/arch-core/releases/$arch_version/release/arch-core-$arch_version-core-$arch_arch.tar.gz"
+tar_file="http://grayhatter.com/public/archC7images/$arch_version.tar.gz"
 wget -O - $tar_file | tar xzvvp -C /tmp/archfs/
 
 # We're about to chroot: remount.
@@ -192,12 +184,6 @@ cp /etc/resolv.conf /tmp/archfs/etc/
 echo ChromeArch > /tmp/archfs/etc/hostname
 #echo -e "127.0.0.1       localhost
 echo -e "\n127.0.1.1       ChromeArch" >> /tmp/archfs/etc/hosts
-# The following lines are desirable for IPv6 capable hosts
-#::1     localhost ip6-localhost ip6-loopback
-#fe00::0 ip6-localnet
-#ff00::0 ip6-mcastprefix
-#ff02::1 ip6-allnodes
-#ff02::2 ip6-allrouters" > /tmp/archfs/etc/hosts
 
 # System updates for ubuntu TODO
 echo -e "apt-get -y update
