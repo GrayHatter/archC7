@@ -1,5 +1,9 @@
+## Code modified from 
+## http://chromeos-cr48.blogspot.com/2013/05/chrubuntu-one-script-to-rule-them-all_31.html
 # fw_type will always be developer for Mario.
 # Alex and ZGB need the developer BIOS installed though.
+
+# Check we're in dev mode.
 fw_type="`crossystem mainfw_type`"
 if [ ! "$fw_type" = "developer" ]
   then
@@ -12,6 +16,7 @@ if [ ! "$fw_type" = "developer" ]
     exit 
 fi
 
+# Keep display on.
 powerd_status="`initctl status powerd`"
 if [ ! "$powerd_status" = "powerd stop/waiting" ]
 then
@@ -21,6 +26,7 @@ fi
 
 setterm -blank 0
 
+# Write changes to disk
 if [ "$3" != "" ]; then
   target_disk=$3
   echo "Got ${target_disk} as target drive"
@@ -40,6 +46,7 @@ if [ "$3" != "" ]; then
   partprobe ${target_disk}
   crossystem dev_boot_usb=1
 else
+  #Prompt user for disk sizes
   target_disk="`rootdev -d -s`"
   # Do partitioning (if we haven't already)
   ckern_size="`cgpt show -i 6 -n -s -q ${target_disk}`"
@@ -199,11 +206,13 @@ then
 fi
 wget -O - $tar_file | tar xzvvp -C /tmp/urfs/
 
+# We're about to chroot: remount.
 mount -o bind /proc /tmp/urfs/proc
 mount -o bind /dev /tmp/urfs/dev
 mount -o bind /dev/pts /tmp/urfs/dev/pts
 mount -o bind /sys /tmp/urfs/sys
 
+# Grab a copy of cgpt for our new install.
 if [ -f /usr/bin/old_bins/cgpt ]
 then
   cp /usr/bin/old_bins/cgpt /tmp/urfs/usr/bin/
@@ -211,6 +220,7 @@ else
   cp /usr/bin/cgpt /tmp/urfs/usr/bin/
 fi
 
+# Set hostname vars.
 chmod a+rx /tmp/urfs/usr/bin/cgpt
 cp /etc/resolv.conf /tmp/urfs/etc/
 echo chrubuntu > /tmp/urfs/etc/hostname
@@ -223,6 +233,7 @@ echo -e "\n127.0.1.1       chrubuntu" >> /tmp/urfs/etc/hosts
 #ff02::1 ip6-allnodes
 #ff02::2 ip6-allrouters" > /tmp/urfs/etc/hosts
 
+# Install chrome to ubuntu
 cr_install="wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
 add-apt-repository \"deb http://dl.google.com/linux/chrome/deb/ stable main\"
 apt-get update
@@ -240,6 +251,7 @@ then
   add_apt_repository_package='python-software-properties'
 fi
 
+# System updates for ubuntu
 echo -e "apt-get -y update
 apt-get -y dist-upgrade
 apt-get -y install ubuntu-minimal
@@ -261,10 +273,12 @@ echo user | echo user:user | chpasswd
 adduser user adm
 adduser user sudo" > /tmp/urfs/install-ubuntu.sh
 
+# chroot and run update script.
 chmod a+x /tmp/urfs/install-ubuntu.sh
 chroot /tmp/urfs /bin/bash -c /install-ubuntu.sh
 rm /tmp/urfs/install-ubuntu.sh
 
+# Prepare our kernel 
 KERN_VER=`uname -r`
 mkdir -p /tmp/urfs/lib/modules/$KERN_VER/
 cp -ar /lib/modules/$KERN_VER/* /tmp/urfs/lib/modules/$KERN_VER/
@@ -272,6 +286,7 @@ if [ ! -d /tmp/urfs/lib/firmware/ ]
 then
   mkdir /tmp/urfs/lib/firmware/
 fi
+# Copy over lib/firmware
 cp -ar /lib/firmware/* /tmp/urfs/lib/firmware/
 
 echo "console=tty1 debug verbose root=${target_rootfs} rootwait rw lsm.module_locking=0" > kernel-config
@@ -285,6 +300,7 @@ current_rootfs="`rootdev -s`"
 current_kernfs_num=$((${current_rootfs: -1:1}-1))
 current_kernfs=${current_rootfs: 0:-1}$current_kernfs_num
 
+# Sign kernel so it will boot
 vbutil_kernel --repack ${target_kern} \
     --oldblob $current_kernfs \
     --keyblock /usr/share/vboot/devkeys/kernel.keyblock \
@@ -296,6 +312,7 @@ vbutil_kernel --repack ${target_kern} \
 #Set Ubuntu kernel partition as top priority for next boot (and next boot only)
 cgpt add -i 6 -P 5 -T 1 ${target_disk}
 
+# We're done, prompt user.
 echo -e "
 
 Installation seems to be complete. If ChrUbuntu fails when you reboot,
