@@ -121,7 +121,7 @@ arch_version="default"
 echo -e "\nChrome device model is: $hwid\n"
 
 echo -e "Attempting to pacstrap Arch Linux\n"
-echo -e "Kernel Arch is: $chromebook_arch  Installing Arch:\n"
+echo -e "Kernel Arch is: $chromebook_arch  Installing Arch Linux:\n"
 read -p "Press [Enter] to continue..."
 
 if [ ! -d /mnt/stateful_partition/arch ]
@@ -132,6 +132,7 @@ fi
 cd /mnt/stateful_partition/arch
 
 # If on arm we need a p before the partition #
+# # This probaly wont work on arm yet, so good luck!
 if [[ "${target_disk}" =~ "mmcblk" ]]
 then
   target_rootfs="${target_disk}p7"
@@ -162,12 +163,6 @@ mount -t ext4 ${target_rootfs} /tmp/archfs
 # pacstrap arch Get OS Image and extract to root. 
 ## TODO
 
-# We're about to chroot: remount.
-mount -o bind /proc /tmp/archfs/proc
-mount -o bind /dev /tmp/archfs/dev
-mount -o bind /dev/pts /tmp/archfs/dev/pts
-mount -o bind /sys /tmp/archfs/sys
-
 # Grab a copy of cgpt for our new install.
 if [ -f /usr/bin/old_bins/cgpt ]
 then
@@ -177,30 +172,35 @@ else
 fi
 chmod a+rx /tmp/archfs/usr/bin/cgpt
 
+# We're about to chroot: remount.
+mount -o bind /proc /tmp/archfs/proc
+mount -o bind /dev /tmp/archfs/dev
+mount -o bind /dev/pts /tmp/archfs/dev/pts
+mount -o bind /sys /tmp/archfs/sys
+
 # Set hostname vars.
 cp /etc/resolv.conf /tmp/archfs/etc/
 echo ChromeArch > /tmp/archfs/etc/hostname
 #echo -e "127.0.0.1       localhost
 echo -e "\n127.0.1.1       ChromeArch" >> /tmp/archfs/etc/hosts
 
-# System updates for ubuntu TODO switch to arch
+# Finish arch setup
 echo -e "
 ## TODO LIST
 #copy modules
 
-#reset hostname
+#reset hostname?
 #install base & base-devel
 #install wl & wpa_supp
 #turn off touch pad wakeup
-#cgpt set successful 
-
-" > /tmp/archfs/install-arch.sh
-
+#grab a copy of vboot bin/configs to mod kernel-config" > /tmp/archfs/install-arch.sh
 # chroot and run install/update script.
 chmod a+x /tmp/archfs/install-arch.sh
 chroot /tmp/archfs /bin/bash -c /install-arch.sh
 rm /tmp/archfs/install-arch.sh
 
+#write a script to make some changes on root login
+#cgpt set successful
 
 # Prepare our kernel 
 KERN_VER=`uname -r`
