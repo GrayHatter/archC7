@@ -23,7 +23,6 @@ then
   echo -e "Stopping powerd to keep display from timing out..."
   initctl stop powerd
 fi
-
 setterm -blank 0
 
 # Write changes to disk
@@ -121,9 +120,8 @@ arch_version="default"
 
 echo -e "\nChrome device model is: $hwid\n"
 
-#TODO edit
-echo -e "Installing arch ${arch_version} with metapackage ${arch_metapackage}\n"
-echo -e "Kernel Arch is: $chromebook_arch  Installing arch Arch: $arch_arch\n"
+echo -e "Attempting to pacstrap Arch Linux\n"
+echo -e "Kernel Arch is: $chromebook_arch  Installing Arch:\n"
 read -p "Press [Enter] to continue..."
 
 if [ ! -d /mnt/stateful_partition/arch ]
@@ -133,6 +131,7 @@ fi
 
 cd /mnt/stateful_partition/arch
 
+# If on arm we need a p before the partition #
 if [[ "${target_disk}" =~ "mmcblk" ]]
 then
   target_rootfs="${target_disk}p7"
@@ -160,9 +159,8 @@ then
 fi
 mount -t ext4 ${target_rootfs} /tmp/archfs
 
-# Get OS Image and extract to root. 
-tar_file="http://grayhatter.com/public/archC7/images/$arch_version.tar.gz"
-wget -O - $tar_file | tar xzvvp -C /tmp/archfs/
+# pacstrap arch Get OS Image and extract to root. 
+## TODO
 
 # We're about to chroot: remount.
 mount -o bind /proc /tmp/archfs/proc
@@ -177,36 +175,32 @@ then
 else
   cp /usr/bin/cgpt /tmp/archfs/usr/bin/
 fi
+chmod a+rx /tmp/archfs/usr/bin/cgpt
 
 # Set hostname vars.
-chmod a+rx /tmp/archfs/usr/bin/cgpt
 cp /etc/resolv.conf /tmp/archfs/etc/
 echo ChromeArch > /tmp/archfs/etc/hostname
 #echo -e "127.0.0.1       localhost
 echo -e "\n127.0.1.1       ChromeArch" >> /tmp/archfs/etc/hosts
 
-# System updates for ubuntu TODO
-echo -e "apt-get -y update
-apt-get -y dist-upgrade
-apt-get -y install arch-minimal
-apt-get -y install wget
-apt-get -y install $add_apt_repository_package
-add-apt-repository main
-add-apt-repository universe
-add-apt-repository restricted
-add-apt-repository multiverse 
-apt-get update
-apt-get -y install $arch_metapackage
-$cr_install
-if [ -f /usr/lib/lightdm/lightdm-set-defaults ]
-then
-  /usr/lib/lightdm/lightdm-set-defaults --autologin user
-fi" > /tmp/archfs/install-arch.sh
+# System updates for ubuntu TODO switch to arch
+echo -e "
+## TODO LIST
+#copy modules
 
-# chroot and run update script.
+#reset hostname
+#install base & base-devel
+#install wl & wpa_supp
+#turn off touch pad wakeup
+#cgpt set successful 
+
+" > /tmp/archfs/install-arch.sh
+
+# chroot and run install/update script.
 chmod a+x /tmp/archfs/install-arch.sh
 chroot /tmp/archfs /bin/bash -c /install-arch.sh
 rm /tmp/archfs/install-arch.sh
+
 
 # Prepare our kernel 
 KERN_VER=`uname -r`
