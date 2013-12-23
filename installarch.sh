@@ -131,16 +131,9 @@ fi
 
 cd /mnt/stateful_partition/arch
 
-# If on arm we need a p before the partition #
-# # This probaly wont work on arm yet, so good luck!
-if [[ "${target_disk}" =~ "mmcblk" ]]
-then
-  target_rootfs="${target_disk}p7"
-  target_kern="${target_disk}p6"
-else
-  target_rootfs="${target_disk}7"
-  target_kern="${target_disk}6"
-fi
+# # This wont work on arm yet! Sorry!
+target_rootfs="${target_disk}7"
+target_kern="${target_disk}6"
 
 echo "Target Kernel Partition: $target_kern  Target Root FS: ${target_rootfs}"
 
@@ -215,10 +208,6 @@ cp -ar /lib/firmware/* /tmp/archfs/lib/firmware/
 
 echo "console=tty1 debug verbose root=${target_rootfs} rootwait rw lsm.module_locking=0" > kernel-config
 vbutil_arch="x86"
-if [ $arch_arch = "armhf" ]
-then
-  vbutil_arch="arm"
-fi
 
 current_rootfs="`rootdev -s`"
 current_kernfs_num=$((${current_rootfs: -1:1}-1))
@@ -238,7 +227,6 @@ cgpt add -i 6 -P 5 -T 1 ${target_disk}
 
 # We're done, prompt user.
 echo -e "
-
 Installation seems to be complete. If ChromeArch fails to boot when you reboot,
 power off your Chrome OS device and then turn it back on. You'll be back
 in Chrome OS. If you're happy with ChromeArch when you reboot be sure to run:
