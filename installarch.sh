@@ -1,7 +1,7 @@
 ## Code modified from 
 ## http://chromeos-cr48.blogspot.com/2013/05/chrubuntu-one-script-to-rule-them-all_31.html
-# fw_type will always be developer for Mario.
-# Alex and ZGB need the developer BIOS installed though.
+# 
+# 
 
 # Check we're in dev mode.
 fw_type="`crossystem mainfw_type`"
@@ -165,28 +165,31 @@ else
 fi
 chmod a+rx /tmp/archfs/usr/bin/cgpt
 
-# We're about to chroot: remount.
-mount -o bind /proc /tmp/archfs/proc
-mount -o bind /dev /tmp/archfs/dev
-mount -o bind /dev/pts /tmp/archfs/dev/pts
-mount -o bind /sys /tmp/archfs/sys
-
 # Set hostname vars.
 cp /etc/resolv.conf /tmp/archfs/etc/
 echo ChromeArch > /tmp/archfs/etc/hostname
 #echo -e "127.0.0.1       localhost
 echo -e "\n127.0.1.1       ChromeArch" >> /tmp/archfs/etc/hosts
 
+# We're about to chroot: remount.
+mount -o bind /proc /tmp/archfs/proc
+mount -o bind /dev /tmp/archfs/dev
+mount -o bind /dev/pts /tmp/archfs/dev/pts
+mount -o bind /sys /tmp/archfs/sys
+
 # Finish arch setup
 echo -e "
 ## TODO LIST
-#copy modules
 
-#reset hostname?
-#install base & base-devel
-#install wl & wpa_supp
-#turn off touch pad wakeup
-#grab a copy of vboot bin/configs to mod kernel-config" > /tmp/archfs/install-arch.sh
+echo 'chromearch' > /etc/hostname
+/usr/bin/pacman \
+    --noconfirm --arch x86_64 -Syu --force
+/usr/bin/pacman \
+    --noconfirm --arch x86_64 -Sy --force base 
+/usr/bin/pacman \
+    --noconfirm --arch x86_64 -Sy --force wl wpa_supplicant
+
+" > /tmp/archfs/install-arch.sh
 # chroot and run install/update script.
 chmod a+x /tmp/archfs/install-arch.sh
 chroot /tmp/archfs /bin/bash -c /install-arch.sh
@@ -196,6 +199,7 @@ rm /tmp/archfs/install-arch.sh
 #cgpt set successful
 
 # Prepare our kernel 
+# Copy modules.
 KERN_VER=`uname -r`
 mkdir -p /tmp/archfs/lib/modules/$KERN_VER/
 cp -ar /lib/modules/$KERN_VER/* /tmp/archfs/lib/modules/$KERN_VER/
