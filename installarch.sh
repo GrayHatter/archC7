@@ -191,12 +191,12 @@ echo 'chromearch' > /etc/hostname
 /usr/bin/pacman \
     --noconfirm -Sy --force base 
 /usr/bin/pacman \
-    --noconfirm -Sy --force wl wpa_supplicant
+    --noconfirm -Sy --force wireless-tools wpa_supplicant
 
 " > /tmp/archfs/install-arch.sh
 # chroot and run install/update script.
-chmod a+x /tmp/archfs/install-arch.sh
-chroot /tmp/archfs /bin/bash -c /install-arch.sh
+#chmod a+x /tmp/archfs/install-arch.sh
+#chroot /tmp/archfs /bin/bash -c /install-arch.sh
 rm /tmp/archfs/install-arch.sh
 
 #write a script to make some changes on root login
