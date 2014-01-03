@@ -24,7 +24,7 @@ set -e -u -o pipefail
 PACMAN_PACKAGES=(
   acl archlinux-keyring attr bzip2 curl expat glibc gpgme libarchive
   libassuan libgpg-error libssh2 lzo2 openssl pacman pacman-mirrorlist xz zlib
-  wireless_tools wpa_supplicant haveged procps-ng 
+  wireless_tools wpa_supplicant procps-ng 
 )
 BASIC_PACKAGES=(${PACMAN_PACKAGES[*]} filesystem)
 EXTRA_PACKAGES=(coreutils bash grep gawk file tar systemd)
@@ -150,6 +150,7 @@ main() {
   configure_minimal_system "$DEST"
   install_packages "$ARCH" "$DEST" "${BASIC_PACKAGES[*]} ${EXTRA_PACKAGES[*]}"
   configure_pacman "$DEST" "$ARCH" # Pacman must be re-configured
+  install_packages "$ARCH" "$DEST" "haveged"
   rm -rf "$PACKDIR"
   
   debug "done"
