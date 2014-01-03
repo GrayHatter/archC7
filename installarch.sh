@@ -187,11 +187,11 @@ echo -e "
 
 echo 'chromearch' > /etc/hostname
 /usr/bin/pacman \
-    --noconfirm --arch x86_64 -Syu --force
+    --noconfirm -Syu --force
 /usr/bin/pacman \
-    --noconfirm --arch x86_64 -Sy --force base 
+    --noconfirm -Sy --force base 
 /usr/bin/pacman \
-    --noconfirm --arch x86_64 -Sy --force wl wpa_supplicant
+    --noconfirm -Sy --force wl wpa_supplicant
 
 " > /tmp/archfs/install-arch.sh
 # chroot and run install/update script.
