@@ -108,6 +108,7 @@ else
     # finally rootc
     cgpt add -i 7 -b $rootc_start -s $rootc_size -l ROOT-C ${target_disk}
 
+    read -p "Press [Enter] to reboot..."
     reboot
     exit
   fi
