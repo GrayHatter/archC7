@@ -186,6 +186,11 @@ echo -e "
 ## TODO LIST
 
 echo 'chromearch' > /etc/hostname
+
+/usr/bin/pacman \
+    --noconfirm -Sy --force haveged
+
+
 haveged -w 1024 &
 
 /usr/bin/pacman-key --init

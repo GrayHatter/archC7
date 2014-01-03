@@ -150,7 +150,6 @@ main() {
   configure_minimal_system "$DEST"
   install_packages "$ARCH" "$DEST" "${BASIC_PACKAGES[*]} ${EXTRA_PACKAGES[*]}"
   configure_pacman "$DEST" "$ARCH" # Pacman must be re-configured
-  install_packages "$ARCH" "$DEST" "haveged"
   rm -rf "$PACKDIR"
   
   debug "done"
