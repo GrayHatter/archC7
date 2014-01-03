@@ -186,17 +186,24 @@ echo -e "
 ## TODO LIST
 
 echo 'chromearch' > /etc/hostname
+haveged -w 1024 &
+
+/usr/bin/pacman-key --init
+
+/usr/bin/pacman-key --populate archlinux
+
 /usr/bin/pacman \
     --noconfirm -Syu --force
+    
 /usr/bin/pacman \
     --noconfirm -Sy --force base 
-/usr/bin/pacman \
-    --noconfirm -Sy --force wireless-tools wpa_supplicant
 
+pkill haveged
+# pacman -Rs haveged
 " > /tmp/archfs/install-arch.sh
 # chroot and run install/update script.
-#chmod a+x /tmp/archfs/install-arch.sh
-#chroot /tmp/archfs /bin/bash -c /install-arch.sh
+chmod a+x /tmp/archfs/install-arch.sh
+chroot /tmp/archfs /bin/bash -c /install-arch.sh
 rm /tmp/archfs/install-arch.sh
 
 #write a script to make some changes on root login
