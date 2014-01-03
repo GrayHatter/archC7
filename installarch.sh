@@ -122,7 +122,7 @@ arch_version="default"
 echo -e "\nChrome device model is: $hwid\n"
 
 echo -e "Attempting to pacstrap Arch Linux\n"
-echo -e "Kernel Arch is: $chromebook_arch  Installing Arch Linux:\n"
+echo -e "Kernel Arch is: $chromebook_arch  Installing Arch Linux...\n"
 read -p "Press [Enter] to continue..."
 
 if [ ! -d /mnt/stateful_partition/arch ]
