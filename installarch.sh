@@ -187,12 +187,7 @@ echo -e "
 
 echo 'chromearch' > /etc/hostname
 
-/usr/bin/pacman \
-    --noconfirm -Sy --force haveged
-
-
-haveged -w 1024 &
-
+echo 'This will take some time, just wait, it'll probably work!'
 /usr/bin/pacman-key --init
 
 /usr/bin/pacman-key --populate archlinux
@@ -203,8 +198,6 @@ haveged -w 1024 &
 /usr/bin/pacman \
     --noconfirm -Sy --force base 
 
-pkill haveged
-# pacman -Rs haveged
 " > /tmp/archfs/install-arch.sh
 # chroot and run install/update script.
 chmod a+x /tmp/archfs/install-arch.sh
