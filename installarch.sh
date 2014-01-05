@@ -219,7 +219,7 @@ fi
 # Copy over lib/firmware
 cp -ar /lib/firmware/* /tmp/archfs/lib/firmware/
 
-echo "console=tty1 debug verbose root=${target_rootfs} rootwait rw lsm.module_locking=0" > kernel-config
+echo "console=tty1 quiet root=${target_rootfs} rootwait rw lsm.module_locking=0" > kernel-config
 vbutil_arch="x86"
 
 current_rootfs="`rootdev -s`"
