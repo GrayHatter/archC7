@@ -187,7 +187,7 @@ echo -e "
 
 echo 'chromearch' > /etc/hostname
 
-echo 'This will take some time, just wait, it'll probably work!'
+echo 'This will take some time, just wait, it\'ll probably work!'
 /usr/bin/pacman-key --init
 
 /usr/bin/pacman-key --populate archlinux
