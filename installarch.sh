@@ -182,12 +182,9 @@ mount -o bind /dev/pts /tmp/archfs/dev/pts
 mount -o bind /sys /tmp/archfs/sys
 
 # Finish arch setup
-echo -e "
-## TODO LIST
+echo -e "echo 'chromearch' > /etc/hostname
 
-echo 'chromearch' > /etc/hostname
-
-echo 'This will take some time, just wait, it\'ll probably work!'
+echo 'This will take some time, just wait, it will probably work...'
 /usr/bin/pacman-key --init
 
 /usr/bin/pacman-key --populate archlinux
