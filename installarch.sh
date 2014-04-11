@@ -156,7 +156,7 @@ mount -t ext4 ${target_rootfs} /tmp/archfs
 
 # pacstrap arch Get OS Image and extract to root. 
 ## TODO
-wget https://raw.github.com/GrayHatter/archC7/develop/arch-bootstrap.sh
+wget http://raw.githubusercontent.com/HorizonShadow/archC7/develop/arch-bootstrap.sh
 chmod +x arch-bootstrap.sh 
 . ./arch-bootstrap.sh /tmp/archfs
 
