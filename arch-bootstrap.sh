@@ -22,9 +22,9 @@ set -e -u -o pipefail
 
 # Packages needed by pacman (see get-pacman-dependencies.sh)
 PACMAN_PACKAGES=(
-  acl archlinux-keyring attr bzip2 curl expat glibc gpgme libarchive
+  krb5 e2fsprogs keyutils acl archlinux-keyring attr bzip2 curl expat glibc gpgme libarchive
   libassuan libgpg-error libssh2 lzo2 openssl pacman pacman-mirrorlist xz zlib
-  wireless_tools wpa_supplicant procps-ng krb5 e2fsprogs keyutils
+  wireless_tools wpa_supplicant procps-ng krb5
 )
 BASIC_PACKAGES=(${PACMAN_PACKAGES[*]} filesystem)
 EXTRA_PACKAGES=(coreutils bash grep gawk file tar systemd)
